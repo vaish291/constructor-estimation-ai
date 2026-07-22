@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuildAI Construction Estimator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/css/style.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+{% include '_navbar.html' %}
+
+<div class="container-fluid px-3 px-lg-4 py-4">
+
+    <div class="row g-4">
+        <!-- 1. Upload & Settings -->
+        <div class="col-lg-4">
+            <div class="card blueprint-panel p-4 h-100">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="step-chip">1</span>
+                    <h2 class="h6 mb-0 text-white">Upload Plan &amp; Configure Estimate</h2>
+                </div>
+                <form id="planForm">
+                    <div class="mb-3">
+                        <label class="form-label">Project Name</label>
+                        <input type="text" id="projectName" class="form-control" value="Residential Block A" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Floor Plan (PDF / Image)</label>
+                        <input type="file" id="planFile" class="form-control" accept=".pdf,.png,.jpg,.jpeg" required>
+                        <div class="form-text text-white-50">AI detects rooms, walls, doors &amp; windows automatically.</div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Location Schedule</label>
+                            <select id="locationSelect" class="form-select">
+                                {% for loc in locations %}
+                                <option value="{{ loc.id }}">{{ loc.state }} - {{ loc.district }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Labour Schedule</label>
+                            <select id="scheduleSelect" class="form-select">
+                                {% for sch in schedules %}
+                                <option value="{{ sch }}">{{ sch }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-4">
+                            <label class="form-label">GST %</label>
+                            <input type="number" id="gstPct" class="form-control" value="{{ default_gst }}" step="0.5">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Wastage %</label>
+                            <input type="text" id="wastagePct" class="form-control" value="auto" title="Enter 'auto' to use per-material defaults, or a number for a flat override">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Profit %</label>
+                            <input type="number" id="profitPct" class="form-control" value="{{ default_profit }}" step="0.5">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">AI Material Recommendation Tier</label>
+                        <select id="budgetTier" class="form-select">
+                            {% for tier in budget_tiers %}
+                            <option value="{{ tier }}" {{ 'selected' if tier=='Standard' else '' }}>{{ tier }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <details class="mb-3 text-white-50">
+                        <summary style="cursor:pointer;">Advanced: plan scale</summary>
+                        <div class="mt-2">
+                            <label class="form-label">Pixels per Metre</label>
+                            <input type="number" id="scaleFactor" class="form-control" value="50">
+                        </div>
+                    </details>
+                    <button type="submit" id="analyzeBtn" class="btn btn-amber w-100 py-2">
+                        Analyze Plan &amp; Generate AI BOQ
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2. Detection & AI BOQ -->
+        <div class="col-lg-8">
+            <div class="card p-4 h-100">
+                <div class="card-header-plain"><span class="step-chip">2</span> Automated Detection &amp; AI BOQ</div>
+
+                <div class="row row-cols-2 row-cols-md-4 g-2 mb-3">
+                    <div class="col"><div class="metric-tile"><div class="metric-label">Built-Up Area</div><div class="metric-value" id="areaVal">0.00 <small>sq.m</small></div></div></div>
+                    <div class="col"><div class="metric-tile tile-slate"><div class="metric-label">Perimeter</div><div class="metric-value" id="perimVal">0.00 <small>m</small></div></div></div>
+                    <div class="col"><div class="metric-tile tile-amber"><div class="metric-label">Rooms Detected</div><div class="metric-value" id="roomVal">0</div></div></div>
+                    <div class="col"><div class="metric-tile tile-green"><div class="metric-label">Walls Detected</div><div class="metric-value" id="wallVal">0</div></div></div>
+                    <div class="col"><div class="metric-tile tile-amber"><div class="metric-label">Doors</div><div class="metric-value" id="doorVal">0</div></div></div>
+                    <div class="col"><div class="metric-tile tile-amber"><div class="metric-label">Windows</div><div class="metric-value" id="windowVal">0</div></div></div>
+                    <div class="col"><div class="metric-tile"><div class="metric-label">Slab Area</div><div class="metric-value" id="slabVal">0 <small>sq.m</small></div></div></div>
+                    <div class="col"><div class="metric-tile"><div class="metric-label">Paint / Tile Area</div><div class="metric-value" id="paintTileVal" style="font-size:1rem;">0 / 0 sq.m</div></div></div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 320px;">
+                    <table class="table table-bordered boq-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th>Item</th>
+                                <th>Quantity</th>
+                                <th>Rate (₹)</th>
+                                <th>Source</th>
+                                <th>Cost (₹)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="boqTable">
+                            <tr><td colspan="5" class="p-4 text-center text-muted">Upload a floor plan to generate the automated AI estimate.</td></tr>
+                        </tbody>
+                        <tfoot id="boqFoot"></tfoot>
+                    </table>
+                </div>
+
+                <div id="ocrBox" class="d-none mt-3 small text-muted border-top pt-2">
+                    <strong>OCR-extracted plan text:</strong>
+                    <div id="ocrText" class="mono" style="max-height:80px; overflow:auto; white-space:pre-wrap;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. AI Cost Optimization + Material Recommendation -->
+        <div class="col-lg-6">
+            <div class="card p-4 h-100 savings-card">
+                <div class="card-header-plain"><span class="step-chip">3</span> AI Cost Optimization</div>
+                <div id="optimizationBox">
+                    <p class="text-muted small mb-0">Run an analysis to see AI-suggested lower-cost material alternatives.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card p-4 h-100">
+                <div class="card-header-plain"><span class="step-chip">4</span> AI Material Recommendation</div>
+                <div id="recommendationBox">
+                    <p class="text-muted small mb-0">Choose a budget tier and analyze a plan to see recommended grades/brands.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 5. Manual Comparison -->
+        <div class="col-lg-6">
+            <div class="card p-4 h-100">
+                <div class="card-header-plain"><span class="step-chip">5</span> Manual Estimate Comparison</div>
+                <label class="form-label">Total Manual Estimated Cost (₹)</label>
+                <input type="number" id="manualCost" class="form-control mb-3" placeholder="Enter manual contractor estimate">
+                <button onclick="compareEstimates()" class="btn btn-primary w-100 mb-3">Compare AI vs Manual &amp; Save Project</button>
+                <div id="varianceBox" class="d-none p-3 rounded text-center fw-bold mb-3"></div>
+                <div id="exportBtnContainer" class="d-none d-flex gap-2 flex-wrap">
+                    <a id="downloadPdfBtn" href="#" class="btn btn-dark btn-sm flex-fill">📄 PDF Report</a>
+                    <a id="downloadExcelBtn" href="#" class="btn btn-outline-dark btn-sm flex-fill">📊 Excel BOQ</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="card p-4 h-100">
+                <div class="card-header-plain">Cost Comparison Chart</div>
+                <canvas id="comparisonChart" style="max-height: 230px;"></canvas>
+            </div>
+        </div>
+
+        <!-- 6. Project History -->
+        <div class="col-12">
+            <div class="card p-4">
+                <div class="card-header-plain">Project History</div>
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Project</th>
+                                <th>Area (sq.m)</th>
+                                <th>Rooms</th>
+                                <th>AI Cost (₹)</th>
+                                <th>Manual Cost (₹)</th>
+                                <th>Variance</th>
+                                <th>Reports</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in projects %}
+                            <tr>
+                                <td class="fw-semibold">{{ p.name }}</td>
+                                <td class="mono">{{ p.built_up_area_sqm }}</td>
+                                <td class="mono">{{ p.room_count or '-' }}</td>
+                                <td class="mono">₹{{ "{:,.2f}".format(p.ai_total_cost) }}</td>
+                                <td class="mono">₹{{ "{:,.2f}".format(p.manual_total_cost) }}</td>
+                                <td class="{{ 'variance-positive' if p.variance_pct > 0 else 'variance-negative' }}">{{ p.variance_pct }}%</td>
+                                <td>
+                                    <a href="/api/export-pdf/{{ p.id }}" class="btn btn-sm btn-outline-dark">PDF</a>
+                                    <a href="/api/export-excel/{{ p.id }}" class="btn btn-sm btn-outline-success">Excel</a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="7" class="p-3 text-center text-muted">No saved projects yet.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="footer-note text-center mt-4">BuildAI Construction Estimator &middot; Rates benchmarked against CPWD &amp; Maharashtra PWD schedules &middot; All figures are AI-assisted estimates, subject to site verification.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/main.js"></script>
+</body>
+</html>

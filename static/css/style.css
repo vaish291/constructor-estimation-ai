@@ -1,0 +1,168 @@
+:root {
+  --bai-navy: #0f172a;
+  --bai-slate: #1e293b;
+  --bai-blue: #2563eb;
+  --bai-blue-dark: #1d4ed8;
+  --bai-amber: #f59e0b;
+  --bai-green: #16a34a;
+  --bai-red: #dc2626;
+  --bai-bg: #f3f5f9;
+  --bai-border: #e2e8f0;
+  --bai-ink: #1e293b;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SFMono-Regular', Menlo, monospace;
+}
+
+body {
+  background-color: var(--bai-bg);
+  color: var(--bai-ink);
+  font-family: var(--font-ui);
+}
+
+.buildai-nav {
+  background: linear-gradient(120deg, var(--bai-navy) 0%, var(--bai-slate) 100%);
+  border-bottom: 3px solid var(--bai-amber);
+}
+.buildai-nav .brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px; height: 30px;
+  background: var(--bai-amber);
+  color: var(--bai-navy);
+  font-family: var(--font-mono);
+  font-weight: 800;
+  border-radius: 6px;
+  transform: rotate(-6deg);
+}
+.buildai-nav .text-accent { color: var(--bai-amber); }
+.buildai-nav .nav-link { color: rgba(255,255,255,.78); font-weight: 500; }
+.buildai-nav .nav-link.active, .buildai-nav .nav-link:hover { color: #fff; }
+.db-badge {
+  background: rgba(245, 158, 11, .15);
+  color: var(--bai-amber);
+  border: 1px solid rgba(245, 158, 11, .4);
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  padding: .4em .7em;
+  letter-spacing: .03em;
+}
+
+/* Blueprint grid texture used sparingly on the hero/upload card */
+.blueprint-panel {
+  position: relative;
+  background-color: #0b1f3a;
+  background-image:
+    linear-gradient(rgba(255,255,255,.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.06) 1px, transparent 1px);
+  background-size: 22px 22px;
+  color: #e2e8f0;
+  border-radius: .75rem;
+}
+.blueprint-panel .form-label { color: #cbd5e1; }
+.blueprint-panel .form-control, .blueprint-panel .form-select {
+  background-color: rgba(255,255,255,.06);
+  border-color: rgba(255,255,255,.18);
+  color: #f8fafc;
+}
+.blueprint-panel .form-control::placeholder { color: rgba(255,255,255,.4); }
+.blueprint-panel .form-control:focus, .blueprint-panel .form-select:focus {
+  background-color: rgba(255,255,255,.1);
+  border-color: var(--bai-amber);
+  box-shadow: 0 0 0 .2rem rgba(245,158,11,.25);
+  color: #fff;
+}
+
+.card {
+  border: 1px solid var(--bai-border);
+  border-radius: .75rem;
+}
+.card-header-plain {
+  font-weight: 700;
+  font-size: .95rem;
+  color: var(--bai-slate);
+  border-bottom: 1px solid var(--bai-border);
+  padding-bottom: .6rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.step-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--bai-blue);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.metric-tile {
+  background: #fff;
+  border: 1px solid var(--bai-border);
+  border-left: 4px solid var(--bai-blue);
+  border-radius: .6rem;
+  padding: .85rem 1rem;
+}
+.metric-tile.tile-amber { border-left-color: var(--bai-amber); }
+.metric-tile.tile-green { border-left-color: var(--bai-green); }
+.metric-tile.tile-slate { border-left-color: var(--bai-slate); }
+.metric-tile .metric-label {
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .06em;
+  color: #64748b; font-weight: 700;
+}
+.metric-tile .metric-value {
+  font-family: var(--font-mono); font-weight: 700; font-size: 1.35rem; color: var(--bai-slate);
+}
+
+.mono { font-family: var(--font-mono); }
+
+table.boq-table thead th {
+  background: var(--bai-slate);
+  color: #fff;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  vertical-align: middle;
+}
+table.boq-table td, table.boq-table th { font-size: .86rem; }
+table.boq-table tbody tr.row-labour { background: #fffbeb; }
+table.boq-table tfoot td {
+  font-weight: 700;
+  background: #f1f5f9;
+  font-family: var(--font-mono);
+}
+
+.badge-source {
+  font-size: .68rem;
+  background: #eef2ff;
+  color: #4338ca;
+  border: 1px solid #c7d2fe;
+}
+
+.savings-card {
+  border-left: 4px solid var(--bai-green);
+  background: #f0fdf4;
+}
+
+.variance-positive { color: var(--bai-red); font-weight: 700; }
+.variance-negative { color: var(--bai-green); font-weight: 700; }
+
+.btn-primary {
+  background-color: var(--bai-blue);
+  border-color: var(--bai-blue);
+}
+.btn-primary:hover { background-color: var(--bai-blue-dark); border-color: var(--bai-blue-dark); }
+.btn-amber {
+  background-color: var(--bai-amber);
+  border-color: var(--bai-amber);
+  color: #1e293b;
+  font-weight: 600;
+}
+.btn-amber:hover { background-color: #d97706; color: #fff; }
+
+.footer-note { color: #94a3b8; font-size: .78rem; }

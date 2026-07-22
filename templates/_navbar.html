@@ -1,0 +1,23 @@
+<nav class="navbar navbar-expand-lg navbar-dark buildai-nav sticky-top">
+  <div class="container-fluid px-3 px-lg-4">
+    <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="/">
+      <span class="brand-mark">B</span>
+      <span>BuildAI <span class="text-accent">Estimator</span></span>
+    </a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+        <li class="nav-item"><a class="nav-link {{ 'active' if active=='dashboard' else '' }}" href="/">Estimator</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if active=='analytics' else '' }}" href="/analytics">Analytics</a></li>
+        <li class="nav-item"><a class="nav-link {{ 'active' if active=='admin' else '' }}" href="/admin">Rate Admin</a></li>
+        <li class="nav-item">
+          <span class="badge rounded-pill db-badge ms-lg-2" title="Active database engine">
+            {{ 'MySQL' if using_mysql else 'SQLite (dev)' }}
+          </span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
